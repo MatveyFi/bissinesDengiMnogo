@@ -1,26 +1,23 @@
 #include <iostream>
-#include <vector>
 #include <cstdlib>
 #include <ctime>
-#include <fstream>
-#include <string> // <--- Добавь эту строку
 
 using namespace std;
 
 const int SIZE = 8;   // Размер поля 8x8
 const int MINES = 10; // Количество мин
 
-// Состояния видимости клеток
+// Состояния видимости клеток:
 // 0 - закрыта, 1 - открыта, 2 - стоит флажок
 int state[SIZE][SIZE] = { 0 };
 
-// Реальное содержимое поля
+// Реальное содержимое поля:
 // -1 - мина, 0..8 - количество мин вокруг
 int board[SIZE][SIZE] = { 0 };
 
 // Расстановка мин и подсчет цифр вокруг
 void initBoard() {
-  srand(time(0));
+  srand(static_cast<unsigned int>(time(0)));
   int placed = 0;
   while (placed < MINES) {
     int r = rand() % SIZE;
@@ -48,14 +45,13 @@ void initBoard() {
   }
 }
 
-// Рекурсивное открытие клеток
+// Рекурсивное открытие пустых областей
 void reveal(int r, int c) {
   if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
   if (state[r][c] != 0) return;
 
   state[r][c] = 1;
 
-  // Если вокруг 0 мин, открываем всех соседей
   if (board[r][c] == 0) {
     for (int dr = -1; dr <= 1; dr++) {
       for (int dc = -1; dc <= 1; dc++) {
@@ -104,42 +100,7 @@ bool checkWin() {
   return openedSafe == (SIZE * SIZE - MINES);
 }
 
-// Генерация HTML-отчета об игре
-void exportToHTML(bool won, int moves) {
-  ofstream file("result.html");
-  file << "<!DOCTYPE html>\n<html lang='ru'>\n<head>\n";
-  file << "<meta charset='UTF-8'>\n<title>Результат Сапёра</title>\n";
-  file << "<link rel='stylesheet' href='style.css'>\n</head>\n<body>\n";
-  file << "<div class='container'>\n";
-  file << "<h1>Итоги партии в Сапёра</h1>\n";
-  file << "<p class='status " << (won ? "win" : "lose") << "'>"
-    << (won ? "Победа! Все мины обезврежены." : "Поражение! Вы подорвались на мине.") << "</p>\n";
-  file << "<p>Сделано ходов: <b>" << moves << "</b></p>\n";
-  file << "<div class='grid'>\n";
-
-  for (int r = 0; r < SIZE; r++) {
-    for (int c = 0; c < SIZE; c++) {
-      if (board[r][c] == -1) {
-        file << "<div class='cell mine'>💣</div>\n";
-      }
-      else if (state[r][c] == 1) {
-        file << "<div class='cell open'>" << (board[r][c] == 0 ? "" : to_string(board[r][c])) << "</div>\n";
-      }
-      else if (state[r][c] == 2) {
-        file << "<div class='cell flag'>🚩</div>\n";
-      }
-      else {
-        file << "<div class='cell closed'></div>\n";
-      }
-    }
-  }
-
-  file << "</div>\n</div>\n</body>\n</html>";
-  file.close();
-  cout << "\nОтчет сохранен в файл result.html! Открой его в браузере.\n";
-}
-
-void saper() {
+int main() {
   initBoard();
 
   int moves = 0;
@@ -191,8 +152,12 @@ void saper() {
   }
 
   printBoard(true);
-  cout << (won ? "\nПОЗДРАВЛЯЕМ! ВЫ ПОБЕДИЛИ!\n" : "\nБАБАХ! ИГРА ОКОНЧЕНА.\n");
-  exportToHTML(won, moves);
+  if (won) {
+    cout << "\nПОЗДРАВЛЯЕМ! ВЫ ПОБЕДИЛИ за " << moves << " ходов!\n";
+  }
+  else {
+    cout << "\nБАБАХ! ИГРА ОКОНЧЕНА. Сделано ходов: " << moves << "\n";
+  }
 
   return 0;
 }
