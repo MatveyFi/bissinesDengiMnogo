@@ -139,7 +139,9 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="21ochko.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="saper.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header.h" />
