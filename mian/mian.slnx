@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="mian/mian.vcxproj" Id="e7f859be-0cfc-475b-81dd-68971514abc7" />
+</Solution>
