@@ -99,7 +99,7 @@ bool checkWin() {
   return openedSafe == (SIZE * SIZE - MINES);
 }
 
-int main() {
+void saper() {
   initBoard();
 
   int moves = 0;
