@@ -14,7 +14,6 @@ int state[SIZE][SIZE] = { 0 };
 // Реальное содержимое поля:
 // -1 - мина, 0..8 - количество мин вокруг
 int board[SIZE][SIZE] = { 0 };
-
 // Расстановка мин и подсчет цифр вокруг
 void initBoard() {
   srand(static_cast<unsigned int>(time(0)));
