@@ -128,12 +128,11 @@
             "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\clocale",
             "d:\\windows kits\\10\\include\\10.0.26100.0\\ucrt\\locale.h",
             "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\ostream",
-            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\string",
-            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\algorithm",
-            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\__msvc_heap_algorithms.hpp",
-            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\__msvc_int128.hpp",
+            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\vector",
             "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\__msvc_bit_utils.hpp",
-            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\__msvc_minmax.hpp"
+            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\fstream",
+            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\__msvc_filebuf.hpp",
+            "d:\\visualstudoi\\poduct\\vc\\tools\\msvc\\14.51.36231\\include\\string"
         ],
         "ImportedModules": [],
         "ImportedHeaderUnits": []

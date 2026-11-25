@@ -1,2 +1,3 @@
 ﻿  main.cpp
+D:\лабы\основы програмной инженерии\проект\mian\mian\main.cpp(23,13): warning C4244: аргумент: преобразование "time_t" в "unsigned int", возможна потеря данных
   mian.vcxproj -> D:\лабы\основы програмной инженерии\проект\mian\x64\Debug\mian.exe

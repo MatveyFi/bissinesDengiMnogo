@@ -1,144 +1,198 @@
 #include <iostream>
-#include <string>
+#include <vector>
 #include <cstdlib>
 #include <ctime>
-#include <algorithm>
+#include <fstream>
+#include <string> // <--- Добавь эту строку
 
 using namespace std;
 
-const int SIZE = 10;
+const int SIZE = 8;   // Размер поля 8x8
+const int MINES = 10; // Количество мин
 
-struct Player {
-  int x = 5;
-  int y = 5;
-  int money = 100;
-  int wantedLevel = 0;
-  bool inCar = false;
-  string carName = "Пешком";
-};
+// Состояния видимости клеток
+// 0 - закрыта, 1 - открыта, 2 - стоит флажок
+int state[SIZE][SIZE] = { 0 };
 
-void drawMap(const Player& p, int carX, int carY, int policeX, int policeY, int clubX, int clubY) {
-  system("cls || clear");
-  cout << "=== GTA: VICE CONSOLE EDITION ===" << endl;
-  cout << "Деньги: $" << p.money << " | Розыск: " << p.wantedLevel << "* | Транспорт: " << p.carName << endl;
-  cout << "Управление: W/A/S/D - ход, F - авто, E - ограбить, R - зайти в клуб (S), Q - выход" << endl;
-  cout << "-----------------------------------------------------------------------------" << endl;
+// Реальное содержимое поля
+// -1 - мина, 0..8 - количество мин вокруг
+int board[SIZE][SIZE] = { 0 };
 
-  for (int y = 0; y < SIZE; y++) {
-    for (int x = 0; x < SIZE; x++) {
-      if (x == p.x && y == p.y) {
-        cout << (p.inCar ? "[C]" : "[P]");
-      }
-      else if (x == policeX && y == policeY && p.wantedLevel > 0) {
-        cout << " ! "; // Полиция
-      }
-      else if (x == clubX && y == clubY) {
-        cout << " S "; // Клуб (Strip Club)
-      }
-      else if (x == carX && y == carY && !p.inCar) {
-        cout << " c "; // Свободная машина
-      }
-      else {
-        cout << " . ";
-      }
+// Расстановка мин и подсчет цифр вокруг
+void initBoard() {
+  srand(time(0));
+  int placed = 0;
+  while (placed < MINES) {
+    int r = rand() % SIZE;
+    int c = rand() % SIZE;
+    if (board[r][c] != -1) {
+      board[r][c] = -1;
+      placed++;
     }
-    cout << endl;
+  }
+
+  for (int r = 0; r < SIZE; r++) {
+    for (int c = 0; c < SIZE; c++) {
+      if (board[r][c] == -1) continue;
+      int count = 0;
+      for (int dr = -1; dr <= 1; dr++) {
+        for (int dc = -1; dc <= 1; dc++) {
+          int nr = r + dr, nc = c + dc;
+          if (nr >= 0 && nr < SIZE && nc >= 0 && nc < SIZE && board[nr][nc] == -1) {
+            count++;
+          }
+        }
+      }
+      board[r][c] = count;
+    }
   }
 }
 
-int main() {
-  srand(static_cast<unsigned int>(time(0)));
+// Рекурсивное открытие клеток
+void reveal(int r, int c) {
+  if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) return;
+  if (state[r][c] != 0) return;
 
-  Player player;
-  int carX = 2, carY = 2;
-  int policeX = 0, policeY = 0;
-  int clubX = 8, clubY = 8; // Координаты клуба
-  char input;
-  string message = "";
+  state[r][c] = 1;
 
-  while (true) {
-    drawMap(player, carX, carY, policeX, policeY, clubX, clubY);
-
-    if (!message.empty()) {
-      cout << "\n[Событие]: " << message << endl;
-      message = "";
-    }
-
-    // Проверка поимки полицией
-    if (player.wantedLevel > 0 && player.x == policeX && player.y == policeY) {
-      cout << "\nПОТРАЧЕНО (WASTED)! Вас поймала полиция. Штраф: $50." << endl;
-      player.money = max(0, player.money - 50);
-      player.wantedLevel = 0;
-      player.inCar = false;
-      player.carName = "Пешком";
-      cout << "Введите любой символ и нажмите Enter, чтобы продолжить...";
-      cin >> input;
-      continue;
-    }
-
-    cout << "\nВаш ход: ";
-    cin >> input;
-    input = tolower(input);
-
-    if (input == 'q') break;
-
-    // Движение
-    int speed = player.inCar ? 2 : 1;
-    if (input == 'w' && player.y - speed >= 0) player.y -= speed;
-    if (input == 's' && player.y + speed < SIZE) player.y += speed;
-    if (input == 'a' && player.x - speed >= 0) player.x -= speed;
-    if (input == 'd' && player.x + speed < SIZE) player.x += speed;
-
-    // Угон / выход из авто
-    if (input == 'f') {
-      if (!player.inCar && player.x == carX && player.y == carY) {
-        player.inCar = true;
-        player.carName = "Спорткар";
-        player.wantedLevel = min(5, player.wantedLevel + 1);
-        message = "Вы угнали спорткар! Полиция на хвосте.";
-      }
-      else if (player.inCar) {
-        player.inCar = false;
-        player.carName = "Пешком";
-        carX = player.x;
-        carY = player.y;
-        message = "Вы вышли из машины.";
+  // Если вокруг 0 мин, открываем всех соседей
+  if (board[r][c] == 0) {
+    for (int dr = -1; dr <= 1; dr++) {
+      for (int dc = -1; dc <= 1; dc++) {
+        reveal(r + dr, c + dc);
       }
     }
+  }
+}
 
-    // Ограбление
-    if (input == 'e' && !player.inCar) {
-      int loot = rand() % 50 + 20;
-      player.money += loot;
-      player.wantedLevel = min(5, player.wantedLevel + 1);
-      message = "Вы ограбили прохожего на $" + to_string(loot) + "!";
-    }
+// Отрисовка поля в консоли
+void printBoard(bool showAll = false) {
+  cout << "\n   ";
+  for (int c = 0; c < SIZE; c++) cout << c << " ";
+  cout << "\n  -----------------\n";
 
-    // Вход в клуб
-    if (input == 'r' && player.x == clubX && player.y == clubY) {
-      if (player.inCar) {
-        message = "Сначала выйдите из машины (нажмите F)!";
+  for (int r = 0; r < SIZE; r++) {
+    cout << r << " |";
+    for (int c = 0; c < SIZE; c++) {
+      if (showAll || state[r][c] == 1) {
+        if (board[r][c] == -1) cout << "* ";
+        else if (board[r][c] == 0) cout << ". ";
+        else cout << board[r][c] << " ";
       }
-      else if (player.money >= 40) {
-        player.money -= 40;
-        player.wantedLevel = 0; // Полиция теряет след, пока вы внутри
-        message = "Вы отлично отдохнули в клубе (-$40). Розыск полностью сброшен!";
+      else if (state[r][c] == 2) {
+        cout << "F ";
       }
       else {
-        message = "Охрана не пускает: нужно минимум $40 на вход!";
+        cout << "# ";
       }
     }
+    cout << "|\n";
+  }
+  cout << "  -----------------\n";
+}
 
-    // Движение полиции
-    if (player.wantedLevel > 0) {
-      if (policeX < player.x) policeX++;
-      else if (policeX > player.x) policeX--;
+// Проверка победы
+bool checkWin() {
+  int openedSafe = 0;
+  for (int r = 0; r < SIZE; r++) {
+    for (int c = 0; c < SIZE; c++) {
+      if (board[r][c] != -1 && state[r][c] == 1) {
+        openedSafe++;
+      }
+    }
+  }
+  return openedSafe == (SIZE * SIZE - MINES);
+}
 
-      if (policeY < player.y) policeY++;
-      else if (policeY > player.y) policeY--;
+// Генерация HTML-отчета об игре
+void exportToHTML(bool won, int moves) {
+  ofstream file("result.html");
+  file << "<!DOCTYPE html>\n<html lang='ru'>\n<head>\n";
+  file << "<meta charset='UTF-8'>\n<title>Результат Сапёра</title>\n";
+  file << "<link rel='stylesheet' href='style.css'>\n</head>\n<body>\n";
+  file << "<div class='container'>\n";
+  file << "<h1>Итоги партии в Сапёра</h1>\n";
+  file << "<p class='status " << (won ? "win" : "lose") << "'>"
+    << (won ? "Победа! Все мины обезврежены." : "Поражение! Вы подорвались на мине.") << "</p>\n";
+  file << "<p>Сделано ходов: <b>" << moves << "</b></p>\n";
+  file << "<div class='grid'>\n";
+
+  for (int r = 0; r < SIZE; r++) {
+    for (int c = 0; c < SIZE; c++) {
+      if (board[r][c] == -1) {
+        file << "<div class='cell mine'>💣</div>\n";
+      }
+      else if (state[r][c] == 1) {
+        file << "<div class='cell open'>" << (board[r][c] == 0 ? "" : to_string(board[r][c])) << "</div>\n";
+      }
+      else if (state[r][c] == 2) {
+        file << "<div class='cell flag'>🚩</div>\n";
+      }
+      else {
+        file << "<div class='cell closed'></div>\n";
+      }
     }
   }
 
-  cout << "Игра окончена. Итоговый счет: $" << player.money << endl;
+  file << "</div>\n</div>\n</body>\n</html>";
+  file.close();
+  cout << "\nОтчет сохранен в файл result.html! Открой его в браузере.\n";
+}
+
+int main() {
+  initBoard();
+
+  int moves = 0;
+  bool gameOver = false;
+  bool won = false;
+
+  cout << "=== КОНСОЛЬНЫЙ САПЁР ===\n";
+  cout << "Формат ввода: [действие] [строка] [столбец]\n";
+  cout << "Действия: o - открыть клетку, f - поставить/убрать флаг (пример: o 2 3)\n";
+
+  while (!gameOver) {
+    printBoard();
+    char action;
+    int r, c;
+    cout << "Ваш ход: ";
+    cin >> action >> r >> c;
+
+    if (r < 0 || r >= SIZE || c < 0 || c >= SIZE) {
+      cout << "Неверные координаты! Введите числа от 0 до " << SIZE - 1 << ".\n";
+      continue;
+    }
+
+    moves++;
+
+    if (action == 'f' || action == 'F') {
+      if (state[r][c] == 0) state[r][c] = 2;
+      else if (state[r][c] == 2) state[r][c] = 0;
+    }
+    else if (action == 'o' || action == 'O') {
+      if (state[r][c] == 2) {
+        cout << "Сначала снимите флаг с этой клетки!\n";
+        continue;
+      }
+      if (board[r][c] == -1) {
+        gameOver = true;
+        won = false;
+      }
+      else {
+        reveal(r, c);
+        if (checkWin()) {
+          gameOver = true;
+          won = true;
+        }
+      }
+    }
+    else {
+      cout << "Неизвестная команда! Используйте 'o' или 'f'.\n";
+    }
+  }
+
+  printBoard(true);
+  cout << (won ? "\nПОЗДРАВЛЯЕМ! ВЫ ПОБЕДИЛИ!\n" : "\nБАБАХ! ИГРА ОКОНЧЕНА.\n");
+  exportToHTML(won, moves);
+
   return 0;
 }
